@@ -1,6 +1,6 @@
 const CONFIG = {
-    owner: 'YOUR_USERNAME',
-    repo: 'YOUR_REPO_NAME',
+    owner: 'tramper2',
+    repo: 'masterPages',
     label: 'project'
 };
 
