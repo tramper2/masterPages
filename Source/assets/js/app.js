@@ -1,7 +1,9 @@
 const CONFIG = {
     owner: 'tramper2',
     repo: 'masterPages',
-    label: 'project'
+    label: 'project',
+    perPage: 9,
+    featuredCount: 3
 };
 
 const API_URL = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/issues?labels=${CONFIG.label}&state=open&per_page=100`;
@@ -12,11 +14,39 @@ const DOM = {
     errorMessage: document.getElementById('error-message'),
     emptyState: document.getElementById('empty-state'),
     skeletonGrid: document.getElementById('skeleton-grid'),
-    projectsGrid: document.getElementById('projects-grid')
+    featuredSection: document.getElementById('featured-section'),
+    featuredGrid: document.getElementById('featured-grid'),
+    projectsSection: document.getElementById('projects-section'),
+    projectsGrid: document.getElementById('projects-grid'),
+    pagination: document.getElementById('pagination')
 };
 
 let currentTheme = localStorage.getItem('projectTheme') || 'aurora';
 let cachedIssues = null;
+let currentPage = 1;
+
+// ========== CLICK TRACKING ==========
+function getClickData() {
+    try {
+        return JSON.parse(localStorage.getItem('projectClicks') || '{}');
+    } catch {
+        return {};
+    }
+}
+
+function recordClick(issueId) {
+    const clicks = getClickData();
+    clicks[issueId] = (clicks[issueId] || 0) + 1;
+    localStorage.setItem('projectClicks', JSON.stringify(clicks));
+}
+
+function getTopClickedIds(count) {
+    const clicks = getClickData();
+    return Object.entries(clicks)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, count)
+        .map(entry => parseInt(entry[0]));
+}
 
 // ========== THEME SYSTEM ==========
 function setTheme(theme) {
@@ -24,14 +54,12 @@ function setTheme(theme) {
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem('projectTheme', theme);
 
-    // Update button states
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-theme-value') === theme);
     });
 
-    // Re-render cards if data exists
     if (cachedIssues) {
-        renderAllCards(cachedIssues);
+        renderPage(currentPage);
     }
 }
 
@@ -43,11 +71,7 @@ function parseIssueBody(body) {
 
     const lines = body.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-    // Extract first image URL from either:
-    // 1. HTML img tag: <img ... src="url" ... />  (GitHub drag-and-drop format)
-    // 2. Markdown image: ![alt](url)
     let imageUrl = null;
-
     const htmlImgPattern = /<img[^>]+src=["']([^"']+)["'][^>]*\/?>/i;
     const mdImgPattern = /!\[.*?\]\((https?:\/\/[^)]+)\)/;
 
@@ -60,7 +84,6 @@ function parseIssueBody(body) {
         imageUrl = mdMatch[1];
     }
 
-    // Filter out image lines (both HTML img tags and markdown images) from description
     const filteredLines = lines.filter(line => {
         return !htmlImgPattern.test(line) && !mdImgPattern.test(line);
     });
@@ -100,20 +123,20 @@ function extractTags(issue) {
 }
 
 // ========== SKELETON ==========
-function renderSkeletonCards(count = 6) {
+function renderSkeletonCards(count = 9) {
     DOM.skeletonGrid.innerHTML = '';
     for (let i = 0; i < count; i++) {
         const skeleton = document.createElement('div');
         skeleton.className = 'project-card';
         skeleton.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;';
         skeleton.innerHTML = `
+            <div class="card-thumbnail"><div class="card-thumbnail-placeholder skeleton-dark"></div></div>
             <div class="card-inner">
                 <div class="skeleton-dark h-8 w-3/4 rounded-lg mb-6"></div>
                 <div class="skeleton-dark h-4 w-1/3 rounded-md mb-8"></div>
                 <div class="space-y-3 mb-10">
                     <div class="skeleton-dark h-4 w-full rounded-md"></div>
                     <div class="skeleton-dark h-4 w-5/6 rounded-md"></div>
-                    <div class="skeleton-dark h-4 w-4/6 rounded-md"></div>
                 </div>
                 <div class="flex gap-3 mt-auto">
                     <div class="skeleton-dark h-8 w-24 rounded-full"></div>
@@ -126,22 +149,29 @@ function renderSkeletonCards(count = 6) {
 }
 
 // ========== CARD RENDERING ==========
-function renderProjectCard(issue, index) {
+function renderProjectCard(issue, index, options = {}) {
     const { url, description, imageUrl } = parseIssueBody(issue.body);
     const tags = extractTags(issue);
     const createdAt = formatDate(issue.created_at);
     const projectNum = String(index + 1).padStart(2, '0');
     const firstLetter = issue.title.charAt(0).toUpperCase();
+    const isFeatured = options.featured || false;
+    const rank = options.rank || null;
 
     const card = document.createElement('article');
-    card.className = 'project-card group';
+    card.className = `project-card group ${isFeatured ? 'featured-card' : ''}`;
+
+    // Badge for featured
+    const badgeHtml = rank ? `<span class="featured-badge">🔥 TOP ${rank}</span>` : '';
 
     // Thumbnail HTML
     const thumbnailHtml = imageUrl
-        ? `<div class="card-thumbnail">
-               <img src="${imageUrl}" alt="${issue.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-thumbnail-placeholder>${firstLetter}</div>'">
+        ? `<div class="card-thumbnail" style="position:relative;">
+               ${badgeHtml}
+               <img src="${imageUrl}" alt="${issue.title}" loading="lazy" onerror="this.parentElement.innerHTML='${badgeHtml}<div class=card-thumbnail-placeholder>${firstLetter}</div>'">
            </div>`
-        : `<div class="card-thumbnail">
+        : `<div class="card-thumbnail" style="position:relative;">
+               ${badgeHtml}
                <div class="card-thumbnail-placeholder">${firstLetter}</div>
            </div>`;
 
@@ -155,6 +185,13 @@ function renderProjectCard(issue, index) {
         tagsHtml += '</div>';
     }
 
+    // Clicks info
+    const clicks = getClickData();
+    const clickCount = clicks[issue.id] || 0;
+    const clicksHtml = clickCount > 0
+        ? `<span class="text-zinc-600 text-xs ml-auto">${clickCount} clicks</span>`
+        : '';
+
     // No-link button
     const noLinkHtml = `
         <div class="card-action cursor-not-allowed opacity-40">
@@ -165,10 +202,11 @@ function renderProjectCard(issue, index) {
         </div>
     `;
 
-    // Link button
+    // Link button (with click tracking)
     const linkHtml = url ? `
-        <a href="${url}" target="_blank" rel="noopener noreferrer" class="card-action group/btn">
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="card-action group/btn" onclick="recordClick(${issue.id})">
             <span>프로젝트 살펴보기</span>
+            ${clicksHtml}
             <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
             </svg>
@@ -208,24 +246,130 @@ function renderProjectCard(issue, index) {
     return card;
 }
 
-function renderAllCards(issues) {
-    DOM.projectsGrid.innerHTML = '';
+// ========== FEATURED SECTION ==========
+function renderFeatured(issues) {
+    const topIds = getTopClickedIds(CONFIG.featuredCount);
+    
+    // If no click data yet, don't show featured section
+    if (topIds.length === 0) {
+        DOM.featuredSection.classList.add('hidden');
+        return;
+    }
 
-    // Add staggered animation
-    issues.forEach((issue, index) => {
-        const card = renderProjectCard(issue, index);
+    const featuredIssues = topIds
+        .map(id => issues.find(issue => issue.id === id))
+        .filter(Boolean);
+
+    if (featuredIssues.length === 0) {
+        DOM.featuredSection.classList.add('hidden');
+        return;
+    }
+
+    DOM.featuredGrid.innerHTML = '';
+    featuredIssues.forEach((issue, idx) => {
+        const globalIndex = issues.indexOf(issue);
+        const card = renderProjectCard(issue, globalIndex, { featured: true, rank: idx + 1 });
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        DOM.featuredGrid.appendChild(card);
+
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, idx * 100);
+    });
+
+    DOM.featuredSection.classList.remove('hidden');
+}
+
+// ========== PAGINATION ==========
+function getTotalPages(issues) {
+    return Math.ceil(issues.length / CONFIG.perPage);
+}
+
+function renderPagination(issues) {
+    const totalPages = getTotalPages(issues);
+    DOM.pagination.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn nav-btn';
+    prevBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>`;
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => goToPage(currentPage - 1);
+    DOM.pagination.appendChild(prevBtn);
+
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        // Show: first, last, current, and neighbors of current
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.textContent = i;
+            btn.onclick = () => goToPage(i);
+            DOM.pagination.appendChild(btn);
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+            const dots = document.createElement('span');
+            dots.className = 'text-zinc-600 px-1';
+            dots.textContent = '···';
+            DOM.pagination.appendChild(dots);
+        }
+    }
+
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn nav-btn';
+    nextBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`;
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => goToPage(currentPage + 1);
+    DOM.pagination.appendChild(nextBtn);
+}
+
+function goToPage(page) {
+    const totalPages = getTotalPages(cachedIssues);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderPage(currentPage);
+
+    // Scroll to projects section
+    DOM.projectsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ========== RENDER PAGE ==========
+function renderPage(page) {
+    if (!cachedIssues) return;
+
+    const issues = cachedIssues;
+    const startIndex = (page - 1) * CONFIG.perPage;
+    const endIndex = startIndex + CONFIG.perPage;
+    const pageIssues = issues.slice(startIndex, endIndex);
+
+    // Render featured
+    renderFeatured(issues);
+
+    // Render current page cards
+    DOM.projectsGrid.innerHTML = '';
+    pageIssues.forEach((issue, idx) => {
+        const globalIndex = startIndex + idx;
+        const card = renderProjectCard(issue, globalIndex);
         card.style.opacity = '0';
         card.style.transform = 'translateY(30px)';
         DOM.projectsGrid.appendChild(card);
 
-        // Stagger animation
         setTimeout(() => {
             card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
-        }, index * 80);
+        }, idx * 80);
     });
 
+    // Render pagination
+    renderPagination(issues);
+
+    // Show sections
     showState('projects');
 }
 
@@ -235,7 +379,7 @@ function showState(state) {
     DOM.errorState.classList.add('hidden');
     DOM.emptyState.classList.add('hidden');
     DOM.skeletonGrid.classList.add('hidden');
-    DOM.projectsGrid.classList.add('hidden');
+    DOM.projectsSection.classList.add('hidden');
 
     switch (state) {
         case 'loading':
@@ -251,7 +395,7 @@ function showState(state) {
             DOM.skeletonGrid.classList.remove('hidden');
             break;
         case 'projects':
-            DOM.projectsGrid.classList.remove('hidden');
+            DOM.projectsSection.classList.remove('hidden');
             break;
     }
 }
@@ -264,7 +408,7 @@ function showError(message) {
 // ========== DATA FETCHING ==========
 async function fetchProjects() {
     showState('skeleton');
-    renderSkeletonCards(6);
+    renderSkeletonCards(9);
 
     try {
         const response = await fetch(API_URL);
@@ -291,7 +435,8 @@ async function fetchProjects() {
         }
 
         cachedIssues = issues;
-        renderAllCards(issues);
+        currentPage = 1;
+        renderPage(currentPage);
 
     } catch (error) {
         console.error('Failed to fetch projects:', error);
@@ -308,9 +453,7 @@ function init() {
     if (owner) CONFIG.owner = owner;
     if (repo) CONFIG.repo = repo;
 
-    // Apply saved theme
     setTheme(currentTheme);
-
     fetchProjects();
 }
 
