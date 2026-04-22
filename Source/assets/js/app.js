@@ -76,17 +76,17 @@ function renderSkeletonCards(count = 6) {
         const skeleton = document.createElement('div');
         skeleton.className = 'glass-card rounded-2xl overflow-hidden';
         skeleton.innerHTML = `
-            <div class="p-8">
-                <div class="skeleton-dark h-7 w-3/4 rounded-lg mb-6"></div>
-                <div class="skeleton-dark h-4 w-1/4 rounded-md mb-6"></div>
-                <div class="space-y-3 mb-8">
+            <div class="p-10 relative">
+                <div class="skeleton-dark h-8 w-3/4 rounded-lg mb-6"></div>
+                <div class="skeleton-dark h-4 w-1/3 rounded-md mb-8"></div>
+                <div class="space-y-3 mb-10">
                     <div class="skeleton-dark h-4 w-full rounded-md"></div>
                     <div class="skeleton-dark h-4 w-5/6 rounded-md"></div>
                     <div class="skeleton-dark h-4 w-4/6 rounded-md"></div>
                 </div>
                 <div class="flex gap-3">
-                    <div class="skeleton-dark h-7 w-20 rounded-full"></div>
-                    <div class="skeleton-dark h-7 w-24 rounded-full"></div>
+                    <div class="skeleton-dark h-8 w-24 rounded-full"></div>
+                    <div class="skeleton-dark h-8 w-28 rounded-full"></div>
                 </div>
             </div>
         `;
@@ -94,55 +94,69 @@ function renderSkeletonCards(count = 6) {
     }
 }
 
-function renderProjectCard(issue) {
+function renderProjectCard(issue, index) {
     const { url, description } = parseIssueBody(issue.body);
     const tags = extractTags(issue);
     const createdAt = formatDate(issue.created_at);
+    const projectNum = String(index + 1).padStart(2, '0');
 
     const card = document.createElement('article');
-    card.className = 'glass-card rounded-2xl overflow-hidden flex flex-col h-full group';
+    card.className = 'glass-card rounded-2xl flex flex-col h-full group';
 
     let tagsHtml = '';
     if (tags.length > 0) {
-        tagsHtml = '<div class="flex flex-wrap gap-2 mb-6 mt-auto">';
+        tagsHtml = '<div class="flex flex-wrap gap-2.5 mb-8 mt-auto">';
         tags.forEach(tag => {
-            const style = createTagStyle(tag.color);
-            tagsHtml += `<span class="text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors hover:bg-opacity-30" style="background-color: ${style.backgroundColor}; color: ${style.color}; border-color: ${style.borderColor}">${tag.name}</span>`;
+            tagsHtml += `<span class="tag-pill">${tag.name}</span>`;
         });
         tagsHtml += '</div>';
     }
 
     card.innerHTML = `
-        <div class="p-8 flex-1 flex flex-col relative z-10">
-            <h3 class="text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors">${issue.title}</h3>
-            <div class="flex items-center text-sm text-zinc-500 mb-6 font-medium">
-                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <div class="p-10 flex-1 flex flex-col relative z-10">
+            <span class="card-number">${projectNum}</span>
+            
+            <div class="mb-2">
+                <span class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-bold opacity-70">Project Case Study</span>
+            </div>
+            
+            <h3 class="text-2xl md:text-3xl font-extrabold text-white mb-4 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+                ${issue.title}
+            </h3>
+            
+            <div class="flex items-center text-xs font-semibold text-zinc-500 mb-8 tracking-wider">
+                <div class="w-8 h-[1px] bg-zinc-800 mr-3"></div>
                 ${createdAt}
             </div>
-            <p class="text-zinc-400 mb-8 leading-relaxed flex-1 line-clamp-3">${description}</p>
+            
+            <p class="text-zinc-400 mb-10 leading-relaxed text-sm md:text-base font-light flex-1 line-clamp-3">
+                ${description}
+            </p>
+            
             ${tagsHtml}
-            <div class="mt-4 pt-6 border-t border-white/5">
+            
+            <div class="mt-4 pt-8 border-t border-white/[0.05]">
                 ${url ? `
-                    <a href="${url}" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center justify-center gap-2 w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 font-medium py-3 px-6 rounded-xl transition-all border border-indigo-500/20 hover:border-indigo-500/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.2)]">
-                        <span>프로젝트 열기</span>
-                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="action-button group/btn">
+                        <span>프로젝트 살펴보기</span>
+                        <svg class="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                         </svg>
                     </a>
                 ` : `
-                    <div class="inline-flex items-center justify-center w-full bg-white/5 text-zinc-500 font-medium py-3 px-6 rounded-xl border border-white/5 cursor-not-allowed">
-                        <span>링크가 없습니다</span>
+                    <div class="flex items-center justify-center w-full bg-white/[0.03] text-zinc-600 font-bold py-4 px-6 rounded-xl border border-white/[0.02] cursor-not-allowed text-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
+                        </svg>
+                        링크 준비중
                     </div>
                 `}
             </div>
         </div>
-        <!-- Hover Gradient Effect -->
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0 pointer-events-none"></div>
+        
+        <!-- Abstract Decoration -->
+        <div class="absolute bottom-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[50px] rounded-full -mr-16 -mb-16 group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
     `;
-
-    // Ensure relative positioning for the absolute hover background
-    card.style.position = 'relative';
 
     return card;
 }
@@ -207,8 +221,8 @@ async function fetchProjects() {
         }
 
         DOM.projectsGrid.innerHTML = '';
-        issues.forEach(issue => {
-            const card = renderProjectCard(issue);
+        issues.forEach((issue, index) => {
+            const card = renderProjectCard(issue, index);
             DOM.projectsGrid.appendChild(card);
         });
 
