@@ -43,16 +43,27 @@ function parseIssueBody(body) {
 
     const lines = body.split('\n').map(line => line.trim()).filter(line => line.length > 0);
 
-    // Extract first markdown image: ![alt](url)
-    const imagePattern = /!\[.*?\]\((https?:\/\/[^)]+)\)/;
+    // Extract first image URL from either:
+    // 1. HTML img tag: <img ... src="url" ... />  (GitHub drag-and-drop format)
+    // 2. Markdown image: ![alt](url)
     let imageUrl = null;
-    const imageMatch = body.match(imagePattern);
-    if (imageMatch) {
-        imageUrl = imageMatch[1];
+
+    const htmlImgPattern = /<img[^>]+src=["']([^"']+)["'][^>]*\/?>/i;
+    const mdImgPattern = /!\[.*?\]\((https?:\/\/[^)]+)\)/;
+
+    const htmlMatch = body.match(htmlImgPattern);
+    const mdMatch = body.match(mdImgPattern);
+
+    if (htmlMatch) {
+        imageUrl = htmlMatch[1];
+    } else if (mdMatch) {
+        imageUrl = mdMatch[1];
     }
 
-    // Filter out image lines from description
-    const filteredLines = lines.filter(line => !imagePattern.test(line));
+    // Filter out image lines (both HTML img tags and markdown images) from description
+    const filteredLines = lines.filter(line => {
+        return !htmlImgPattern.test(line) && !mdImgPattern.test(line);
+    });
 
     const urlPattern = /^https?:\/\/.+/i;
     let firstUrl = null;
