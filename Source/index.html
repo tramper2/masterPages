@@ -14,9 +14,6 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                    colors: {
-                        dark: '#030712',
-                    },
                     animation: {
                         'blob': 'blob 7s infinite',
                         'shimmer': 'shimmer 2s linear infinite',
@@ -39,7 +36,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
             background-color: #030712;
@@ -47,104 +44,9 @@
             overflow-x: hidden;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-12px) scale(1.02);
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 30px 60px -15px rgba(0,0,0,0.7), 0 0 20px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Card Border Glow Effect */
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                120deg,
-                transparent,
-                rgba(255, 255, 255, 0.05),
-                transparent
-            );
-            transition: 0.6s;
-            z-index: 1;
-        }
-
-        .glass-card:hover::before {
-            left: 100%;
-        }
-
-        .card-number {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            font-size: 8rem;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.02);
-            line-height: 1;
-            user-select: none;
-            pointer-events: none;
-            z-index: 0;
-            transition: 0.5s ease;
-        }
-
-        .glass-card:hover .card-number {
-            color: rgba(255, 255, 255, 0.04);
-            transform: scale(1.1) translate(-10px, 10px);
-        }
-
-        .tag-pill {
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: #a5b4fc;
-            padding: 4px 12px;
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.025em;
-            transition: all 0.3s ease;
-        }
-
-        .tag-pill:hover {
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(99, 102, 241, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .action-button {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            font-weight: 600;
-            border-radius: 12px;
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-        }
-
-        .action-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.5);
-            letter-spacing: 0.5px;
-        }
-
+        /* ========== SHARED UTILITIES ========== */
         .skeleton-dark {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.02) 75%);
+            background: linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.02) 75%);
             background-size: 200% 100%;
             animation: shimmer 2s infinite;
         }
@@ -164,37 +66,12 @@
             opacity: 0.4;
         }
 
-        .orb-1 {
-            width: 500px;
-            height: 500px;
-            background: #4f46e5;
-            top: -150px;
-            left: -100px;
-            animation: blob 7s infinite;
-        }
-
-        .orb-2 {
-            width: 400px;
-            height: 400px;
-            background: #9333ea;
-            top: 20%;
-            right: -100px;
-            animation: blob 7s infinite;
-            animation-delay: 2s;
-        }
-
-        .orb-3 {
-            width: 600px;
-            height: 600px;
-            background: #2563eb;
-            bottom: -200px;
-            left: 10%;
-            animation: blob 7s infinite;
-            animation-delay: 4s;
-        }
+        .orb-1 { width: 500px; height: 500px; background: #4f46e5; top: -150px; left: -100px; animation: blob 7s infinite; }
+        .orb-2 { width: 400px; height: 400px; background: #9333ea; top: 20%; right: -100px; animation: blob 7s infinite; animation-delay: 2s; }
+        .orb-3 { width: 600px; height: 600px; background: #2563eb; bottom: -200px; left: 10%; animation: blob 7s infinite; animation-delay: 4s; }
 
         .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255,255,255,0.1);
             border-top: 3px solid #818cf8;
             border-radius: 50%;
             width: 48px;
@@ -202,43 +79,413 @@
             animation: spin 1s linear infinite;
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to { background-position: -200% 0; }
+        }
+        @keyframes neonPulse {
+            0%, 100% { box-shadow: 0 0 5px var(--neon-color), 0 0 20px var(--neon-color), 0 0 40px var(--neon-color); }
+            50% { box-shadow: 0 0 10px var(--neon-color), 0 0 30px var(--neon-color), 0 0 60px var(--neon-color); }
+        }
+        @keyframes borderRotate {
+            0% { --angle: 0deg; }
+            100% { --angle: 360deg; }
         }
 
-        ::-webkit-scrollbar-track {
-            background: #030712;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
 
         .noise-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            opacity: 0.03;
+            position: fixed; inset: 0; z-index: -1; opacity: 0.03;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* ========== GLASS-CARD BASE (for non-project elements) ========== */
+        .glass-card {
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* ========== THEME SWITCHER ========== */
+        .theme-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #71717a;
+        }
+        .theme-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: #d4d4d8;
+        }
+        .theme-btn.active {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+
+        /* ========== THEME 1: NEON CYBERPUNK ========== */
+        [data-theme="neon"] .project-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+        [data-theme="neon"] .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff88, #00ccff, transparent);
+            opacity: 0.6;
+        }
+        [data-theme="neon"] .project-card:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1), 0 0 60px rgba(0, 255, 136, 0.05), inset 0 0 30px rgba(0, 255, 136, 0.03);
+            transform: translateY(-4px);
+        }
+        [data-theme="neon"] .card-title { color: #00ff88; font-family: 'JetBrains Mono', monospace; }
+        [data-theme="neon"] .card-subtitle { color: #00ccff; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        [data-theme="neon"] .card-desc { color: #6b7280; }
+        [data-theme="neon"] .card-date { color: #374151; font-family: 'JetBrains Mono', monospace; }
+        [data-theme="neon"] .card-tag {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        [data-theme="neon"] .card-action {
+            background: transparent;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 13px;
+        }
+        [data-theme="neon"] .card-action:hover {
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+        [data-theme="neon"] .card-number {
+            color: rgba(0, 255, 136, 0.06);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ========== THEME 2: MINIMAL EDITORIAL ========== */
+        [data-theme="minimal"] .project-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        [data-theme="minimal"] .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 3px;
+            background: #a1a1aa;
+            transform: scaleY(0);
+            transform-origin: bottom;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        [data-theme="minimal"] .project-card:hover::before {
+            transform: scaleY(1);
+        }
+        [data-theme="minimal"] .project-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(8px);
+        }
+        [data-theme="minimal"] .card-title { color: #e4e4e7; font-weight: 300; letter-spacing: -0.02em; }
+        [data-theme="minimal"] .card-subtitle { color: #52525b; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; }
+        [data-theme="minimal"] .card-desc { color: #71717a; font-weight: 300; }
+        [data-theme="minimal"] .card-date { color: #3f3f46; }
+        [data-theme="minimal"] .card-tag {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        [data-theme="minimal"] .card-action {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #a1a1aa;
+            border-radius: 0;
+            color: #d4d4d8;
+            padding: 8px 0;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+        [data-theme="minimal"] .card-action:hover {
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+        [data-theme="minimal"] .card-number {
+            color: rgba(255, 255, 255, 0.03);
+        }
+        [data-theme="minimal"] #projects-grid {
+            gap: 0 !important;
+        }
+
+        /* ========== THEME 3: AURORA GRADIENT ========== */
+        [data-theme="aurora"] .project-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        [data-theme="aurora"] .project-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 26px;
+            padding: 2px;
+            background: conic-gradient(from var(--angle, 0deg), #7c3aed, #ec4899, #f59e0b, #10b981, #3b82f6, #7c3aed);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            animation: borderRotate 4s linear infinite;
+        }
+        [data-theme="aurora"] .project-card:hover::before {
+            opacity: 1;
+        }
+        [data-theme="aurora"] .project-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: radial-gradient(ellipse at 30% 20%, rgba(124, 58, 237, 0.1), transparent 60%),
+                        radial-gradient(ellipse at 70% 80%, rgba(236, 72, 153, 0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        [data-theme="aurora"] .project-card:hover::after {
+            opacity: 1;
+        }
+        [data-theme="aurora"] .project-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 30px 60px -15px rgba(124, 58, 237, 0.2);
+        }
+        [data-theme="aurora"] .card-title {
+            background: linear-gradient(135deg, #ffffff, #d4d4d8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        [data-theme="aurora"] .project-card:hover .card-title {
+            background: linear-gradient(135deg, #c084fc, #f9a8d4, #fcd34d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        [data-theme="aurora"] .card-subtitle { color: #7c3aed; }
+        [data-theme="aurora"] .card-desc { color: #a1a1aa; }
+        [data-theme="aurora"] .card-date { color: #52525b; }
+        [data-theme="aurora"] .card-tag {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(236, 72, 153, 0.1));
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            color: #c084fc;
+        }
+        [data-theme="aurora"] .card-action {
+            background: linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #f59e0b 100%);
+            background-size: 200% 100%;
+            color: white;
+            font-weight: 700;
+            border: none;
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+            transition: all 0.4s ease;
+        }
+        [data-theme="aurora"] .card-action:hover {
+            background-position: 100% 0;
+            box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
+            transform: scale(1.05);
+        }
+        [data-theme="aurora"] .card-number {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(236, 72, 153, 0.03));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @supports (background: paint(something)) {
+            @property --angle {
+                syntax: '<angle>';
+                initial-value: 0deg;
+                inherits: false;
+            }
+        }
+
+        /* Card shared layout */
+        .project-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .card-inner {
+            padding: 2.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+        .card-number {
+            position: absolute;
+            top: -10px; right: -10px;
+            font-size: 7rem;
+            font-weight: 900;
+            line-height: 1;
+            user-select: none;
+            pointer-events: none;
+            z-index: 0;
+            transition: 0.5s ease;
+        }
+        .project-card:hover .card-number {
+            transform: scale(1.1) translate(-10px, 10px);
+        }
+
+        /* Card action shared */
+        .card-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            width: 100%;
+        }
+        .card-tag {
+            padding: 5px 14px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        /* ========== CARD THUMBNAIL ========== */
+        .card-thumbnail {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            z-index: 2;
+        }
+        .card-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .project-card:hover .card-thumbnail img {
+            transform: scale(1.08);
+        }
+        .card-thumbnail-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.06);
+            background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.04) 100%);
+            transition: all 0.5s ease;
+        }
+        .project-card:hover .card-thumbnail-placeholder {
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Thumbnail theme overrides */
+        [data-theme="neon"] .card-thumbnail {
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+        [data-theme="neon"] .card-thumbnail-placeholder {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.03) 0%, rgba(0, 204, 255, 0.03) 100%);
+            color: rgba(0, 255, 136, 0.08);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        [data-theme="neon"] .project-card:hover .card-thumbnail-placeholder {
+            color: rgba(0, 255, 136, 0.15);
+        }
+
+        [data-theme="minimal"] .card-thumbnail {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        [data-theme="minimal"] .card-thumbnail-placeholder {
+            background: rgba(255, 255, 255, 0.01);
+            color: rgba(255, 255, 255, 0.04);
+        }
+
+        [data-theme="aurora"] .card-thumbnail-placeholder {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+            color: rgba(124, 58, 237, 0.1);
+        }
+        [data-theme="aurora"] .project-card:hover .card-thumbnail-placeholder {
+            color: rgba(124, 58, 237, 0.18);
         }
     </style>
 </head>
 
-<body class="min-h-screen relative font-sans selection:bg-indigo-500/30">
-    <div class="fixed top-8 right-8 z-50">
-        <a href="https://github.com/tramper2/masterPages/issues/new?labels=project" target="_blank" rel="noopener noreferrer" 
-           class="glass-card px-6 py-3 rounded-2xl flex items-center gap-3 text-sm font-bold text-white hover:border-indigo-500/50 hover:bg-indigo-500/10 transition-all group">
+<body class="min-h-screen relative font-sans selection:bg-indigo-500/30" data-theme="aurora">
+    <!-- Top bar: Theme Switcher + Register Button -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+        <div class="glass-card rounded-2xl px-2 py-2 flex items-center gap-1.5">
+            <button class="theme-btn active" data-theme-value="aurora" onclick="setTheme('aurora')">
+                🌈 오로라
+            </button>
+            <button class="theme-btn" data-theme-value="neon" onclick="setTheme('neon')">
+                ⚡ 사이버펑크
+            </button>
+            <button class="theme-btn" data-theme-value="minimal" onclick="setTheme('minimal')">
+                ✦ 미니멀
+            </button>
+        </div>
+    </div>
+
+    <!-- Register Button -->
+    <div class="fixed top-6 right-8 z-50">
+        <a href="https://github.com/tramper2/masterPages/issues/new?labels=project" target="_blank" rel="noopener noreferrer"
+           class="glass-card px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-bold text-white hover:border-indigo-500/50 hover:bg-indigo-500/10 transition-all group">
             <span class="w-8 h-8 rounded-xl bg-indigo-500/20 flex items-center justify-center group-hover:bg-indigo-500 group-hover:scale-110 transition-all duration-300">
                 <svg class="w-4 h-4 text-indigo-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                 </svg>
             </span>
-            <span class="tracking-tight">프로젝트 등록</span>
+            <span class="tracking-tight hidden sm:inline">프로젝트 등록</span>
         </a>
     </div>
 
@@ -248,9 +495,8 @@
     <div class="bg-orb orb-3 pointer-events-none"></div>
 
     <div class="container mx-auto px-4 py-20 max-w-7xl relative z-10">
-        <header class="text-center mb-24">
-            <div
-                class="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full glass-card text-sm font-medium text-indigo-300">
+        <header class="text-center mb-24 mt-8">
+            <div class="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full glass-card text-sm font-medium text-indigo-300">
                 <span class="flex w-2 h-2 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
                 Projects & Curation
             </div>

@@ -15,28 +15,60 @@ const DOM = {
     projectsGrid: document.getElementById('projects-grid')
 };
 
+let currentTheme = localStorage.getItem('projectTheme') || 'aurora';
+let cachedIssues = null;
+
+// ========== THEME SYSTEM ==========
+function setTheme(theme) {
+    currentTheme = theme;
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('projectTheme', theme);
+
+    // Update button states
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-theme-value') === theme);
+    });
+
+    // Re-render cards if data exists
+    if (cachedIssues) {
+        renderAllCards(cachedIssues);
+    }
+}
+
+// ========== PARSING ==========
 function parseIssueBody(body) {
     if (!body) {
-        return { url: null, description: '' };
+        return { url: null, description: '', imageUrl: null };
     }
 
     const lines = body.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
+    // Extract first markdown image: ![alt](url)
+    const imagePattern = /!\[.*?\]\((https?:\/\/[^)]+)\)/;
+    let imageUrl = null;
+    const imageMatch = body.match(imagePattern);
+    if (imageMatch) {
+        imageUrl = imageMatch[1];
+    }
+
+    // Filter out image lines from description
+    const filteredLines = lines.filter(line => !imagePattern.test(line));
 
     const urlPattern = /^https?:\/\/.+/i;
     let firstUrl = null;
     let descriptionStartIndex = 0;
 
-    for (let i = 0; i < lines.length; i++) {
-        if (urlPattern.test(lines[i])) {
-            firstUrl = lines[i];
+    for (let i = 0; i < filteredLines.length; i++) {
+        if (urlPattern.test(filteredLines[i])) {
+            firstUrl = filteredLines[i];
             descriptionStartIndex = i + 1;
             break;
         }
     }
 
-    const description = lines.slice(descriptionStartIndex).join('\n').trim();
+    const description = filteredLines.slice(descriptionStartIndex).join('\n').trim();
 
-    return { url: firstUrl, description: description || '설명이 없습니다.' };
+    return { url: firstUrl, description: description || '설명이 없습니다.', imageUrl };
 }
 
 function formatDate(dateString) {
@@ -56,27 +88,15 @@ function extractTags(issue) {
         }));
 }
 
-function createTagStyle(color) {
-    // In dark mode, we want subtle glowing tags or glass-like tags
-    // Let's use the color but make it transparent for background and bright for text
-    const r = parseInt(color.substr(0, 2), 16);
-    const g = parseInt(color.substr(2, 2), 16);
-    const b = parseInt(color.substr(4, 2), 16);
-
-    return {
-        backgroundColor: `rgba(${r}, ${g}, ${b}, 0.15)`,
-        color: `rgb(${Math.min(r + 50, 255)}, ${Math.min(g + 50, 255)}, ${Math.min(b + 50, 255)})`,
-        borderColor: `rgba(${r}, ${g}, ${b}, 0.3)`
-    };
-}
-
+// ========== SKELETON ==========
 function renderSkeletonCards(count = 6) {
     DOM.skeletonGrid.innerHTML = '';
     for (let i = 0; i < count; i++) {
         const skeleton = document.createElement('div');
-        skeleton.className = 'glass-card rounded-2xl overflow-hidden';
+        skeleton.className = 'project-card';
+        skeleton.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;';
         skeleton.innerHTML = `
-            <div class="p-10 relative">
+            <div class="card-inner">
                 <div class="skeleton-dark h-8 w-3/4 rounded-lg mb-6"></div>
                 <div class="skeleton-dark h-4 w-1/3 rounded-md mb-8"></div>
                 <div class="space-y-3 mb-10">
@@ -84,7 +104,7 @@ function renderSkeletonCards(count = 6) {
                     <div class="skeleton-dark h-4 w-5/6 rounded-md"></div>
                     <div class="skeleton-dark h-4 w-4/6 rounded-md"></div>
                 </div>
-                <div class="flex gap-3">
+                <div class="flex gap-3 mt-auto">
                     <div class="skeleton-dark h-8 w-24 rounded-full"></div>
                     <div class="skeleton-dark h-8 w-28 rounded-full"></div>
                 </div>
@@ -94,73 +114,111 @@ function renderSkeletonCards(count = 6) {
     }
 }
 
+// ========== CARD RENDERING ==========
 function renderProjectCard(issue, index) {
-    const { url, description } = parseIssueBody(issue.body);
+    const { url, description, imageUrl } = parseIssueBody(issue.body);
     const tags = extractTags(issue);
     const createdAt = formatDate(issue.created_at);
     const projectNum = String(index + 1).padStart(2, '0');
+    const firstLetter = issue.title.charAt(0).toUpperCase();
 
     const card = document.createElement('article');
-    card.className = 'glass-card rounded-2xl flex flex-col h-full group';
+    card.className = 'project-card group';
 
+    // Thumbnail HTML
+    const thumbnailHtml = imageUrl
+        ? `<div class="card-thumbnail">
+               <img src="${imageUrl}" alt="${issue.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=card-thumbnail-placeholder>${firstLetter}</div>'">
+           </div>`
+        : `<div class="card-thumbnail">
+               <div class="card-thumbnail-placeholder">${firstLetter}</div>
+           </div>`;
+
+    // Tags HTML
     let tagsHtml = '';
     if (tags.length > 0) {
-        tagsHtml = '<div class="flex flex-wrap gap-2.5 mb-8 mt-auto">';
+        tagsHtml = '<div class="flex flex-wrap gap-2 mb-6 mt-auto">';
         tags.forEach(tag => {
-            tagsHtml += `<span class="tag-pill">${tag.name}</span>`;
+            tagsHtml += `<span class="card-tag">${tag.name}</span>`;
         });
         tagsHtml += '</div>';
     }
 
+    // No-link button
+    const noLinkHtml = `
+        <div class="card-action cursor-not-allowed opacity-40">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
+            </svg>
+            링크 준비중
+        </div>
+    `;
+
+    // Link button
+    const linkHtml = url ? `
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="card-action group/btn">
+            <span>프로젝트 살펴보기</span>
+            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+        </a>
+    ` : noLinkHtml;
+
     card.innerHTML = `
-        <div class="p-10 flex-1 flex flex-col relative z-10">
+        ${thumbnailHtml}
+        <div class="card-inner">
             <span class="card-number">${projectNum}</span>
             
             <div class="mb-2">
-                <span class="text-[10px] uppercase tracking-[0.2em] text-indigo-400 font-bold opacity-70">Project Case Study</span>
+                <span class="card-subtitle">Project #${projectNum}</span>
             </div>
             
-            <h3 class="text-2xl md:text-3xl font-extrabold text-white mb-4 line-clamp-2 leading-tight group-hover:text-indigo-300 transition-colors">
+            <h3 class="card-title text-2xl font-bold mb-4 line-clamp-2 leading-tight transition-colors">
                 ${issue.title}
             </h3>
             
-            <div class="flex items-center text-xs font-semibold text-zinc-500 mb-8 tracking-wider">
-                <div class="w-8 h-[1px] bg-zinc-800 mr-3"></div>
+            <div class="card-date flex items-center text-xs font-semibold mb-8 tracking-wider">
+                <div class="w-8 h-[1px] bg-current opacity-30 mr-3"></div>
                 ${createdAt}
             </div>
             
-            <p class="text-zinc-400 mb-10 leading-relaxed text-sm md:text-base font-light flex-1 line-clamp-3">
+            <p class="card-desc mb-8 leading-relaxed text-sm flex-1 line-clamp-3">
                 ${description}
             </p>
             
             ${tagsHtml}
             
-            <div class="mt-4 pt-8 border-t border-white/[0.05]">
-                ${url ? `
-                    <a href="${url}" target="_blank" rel="noopener noreferrer" class="action-button group/btn">
-                        <span>프로젝트 살펴보기</span>
-                        <svg class="w-5 h-5 group-hover/btn:translate-x-1.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                        </svg>
-                    </a>
-                ` : `
-                    <div class="flex items-center justify-center w-full bg-white/[0.03] text-zinc-600 font-bold py-4 px-6 rounded-xl border border-white/[0.02] cursor-not-allowed text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"></path>
-                        </svg>
-                        링크 준비중
-                    </div>
-                `}
+            <div class="mt-auto pt-6 border-t border-white/[0.05]">
+                ${linkHtml}
             </div>
         </div>
-        
-        <!-- Abstract Decoration -->
-        <div class="absolute bottom-0 right-0 w-32 h-32 bg-indigo-500/5 blur-[50px] rounded-full -mr-16 -mb-16 group-hover:bg-indigo-500/10 transition-colors duration-500"></div>
     `;
 
     return card;
 }
 
+function renderAllCards(issues) {
+    DOM.projectsGrid.innerHTML = '';
+
+    // Add staggered animation
+    issues.forEach((issue, index) => {
+        const card = renderProjectCard(issue, index);
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        DOM.projectsGrid.appendChild(card);
+
+        // Stagger animation
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 80);
+    });
+
+    showState('projects');
+}
+
+// ========== STATE MANAGEMENT ==========
 function showState(state) {
     DOM.loadingState.classList.add('hidden');
     DOM.errorState.classList.add('hidden');
@@ -192,6 +250,7 @@ function showError(message) {
     showState('error');
 }
 
+// ========== DATA FETCHING ==========
 async function fetchProjects() {
     showState('skeleton');
     renderSkeletonCards(6);
@@ -220,13 +279,8 @@ async function fetchProjects() {
             return;
         }
 
-        DOM.projectsGrid.innerHTML = '';
-        issues.forEach((issue, index) => {
-            const card = renderProjectCard(issue, index);
-            DOM.projectsGrid.appendChild(card);
-        });
-
-        showState('projects');
+        cachedIssues = issues;
+        renderAllCards(issues);
 
     } catch (error) {
         console.error('Failed to fetch projects:', error);
@@ -234,6 +288,7 @@ async function fetchProjects() {
     }
 }
 
+// ========== INITIALIZATION ==========
 function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const owner = urlParams.get('owner');
@@ -241,6 +296,9 @@ function init() {
 
     if (owner) CONFIG.owner = owner;
     if (repo) CONFIG.repo = repo;
+
+    // Apply saved theme
+    setTheme(currentTheme);
 
     fetchProjects();
 }
