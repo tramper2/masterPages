@@ -1,98 +1,227 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="프로젝트 큐레이션 페이지 - 개발한 프로젝트를 한곳에서 확인하고 이동하세요">
+    <meta name="description" content="프로젝트 큐레이션 페이지 - 그동안 개발한 이런저런 프로젝트를 한곳에서 모아둠">
     <title>프로젝트 큐레이션</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: '#030712',
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'shimmer': 'shimmer 2s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        shimmer: {
+                            from: { backgroundPosition: '200% 0' },
+                            to: { backgroundPosition: '-200% 0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
+        body {
+            background-color: #030712;
+            color: #f3f4f6;
+            overflow-x: hidden;
         }
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.03);
         }
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+
+        .skeleton-dark {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(255, 255, 255, 0.06) 50%, rgba(255, 255, 255, 0.02) 75%);
             background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            animation: shimmer 2s infinite;
         }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3b82f6;
+
+        .bg-orb {
+            position: absolute;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: #4f46e5;
+            top: -150px;
+            left: -100px;
+            animation: blob 7s infinite;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #9333ea;
+            top: 20%;
+            right: -100px;
+            animation: blob 7s infinite;
+            animation-delay: 2s;
+        }
+
+        .orb-3 {
+            width: 600px;
+            height: 600px;
+            background: #2563eb;
+            bottom: -200px;
+            left: 10%;
+            animation: blob 7s infinite;
+            animation-delay: 4s;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #818cf8;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
             animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        .noise-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
-    <div class="container mx-auto px-4 py-12 max-w-6xl">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
+
+<body class="min-h-screen relative font-sans selection:bg-indigo-500/30">
+    <div class="noise-bg pointer-events-none"></div>
+    <div class="bg-orb orb-1 pointer-events-none"></div>
+    <div class="bg-orb orb-2 pointer-events-none"></div>
+    <div class="bg-orb orb-3 pointer-events-none"></div>
+
+    <div class="container mx-auto px-4 py-20 max-w-7xl relative z-10">
+        <header class="text-center mb-24">
+            <div
+                class="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full glass-card text-sm font-medium text-indigo-300">
+                <span class="flex w-2 h-2 rounded-full bg-indigo-400 mr-2 animate-pulse"></span>
+                Projects & Curation
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight text-gradient">
                 프로젝트 큐레이션
             </h1>
-            <p class="text-lg text-slate-600">
-                개발한 프로젝트를 한곳에서 확인하고 체험해보세요
+            <p class="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto font-light leading-relaxed">
+                그동안 개발한 다채로운 프로젝트들을 모아둠.
             </p>
         </header>
 
-        <div id="loading-state" class="flex flex-col items-center justify-center py-20">
-            <div class="spinner mb-4"></div>
-            <p class="text-slate-600">프로젝트를 불러오는 중입니다...</p>
+        <div id="loading-state" class="flex flex-col items-center justify-center py-32">
+            <div class="spinner mb-6"></div>
+            <p class="text-zinc-400 font-medium tracking-wide">프로젝트를 불러오는 중입니다...</p>
         </div>
 
-        <div id="error-state" class="hidden">
-            <div class="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-                <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div id="error-state" class="hidden max-w-md mx-auto">
+            <div class="glass-card rounded-2xl p-10 text-center border-red-500/20 bg-red-500/5">
+                <svg class="w-16 h-16 text-red-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
                 </svg>
-                <h3 class="text-xl font-semibold text-red-800 mb-2">데이터를 불러올 수 없습니다</h3>
-                <p class="text-red-600 mb-6" id="error-message">네트워크 연결을 확인해주세요</p>
-                <button onclick="fetchProjects()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                <h3 class="text-xl font-semibold text-red-200 mb-3">데이터를 불러올 수 없습니다</h3>
+                <p class="text-red-400/80 mb-8" id="error-message">네트워크 연결을 확인해주세요</p>
+                <button onclick="fetchProjects()"
+                    class="bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/20 font-medium py-2.5 px-8 rounded-xl transition-all">
                     다시 시도
                 </button>
             </div>
         </div>
 
-        <div id="empty-state" class="hidden">
-            <div class="bg-slate-50 border border-slate-200 rounded-xl p-12 text-center">
-                <svg class="w-20 h-20 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
-                <h3 class="text-xl font-semibold text-slate-700 mb-2">등록된 프로젝트가 없습니다</h3>
-                <p class="text-slate-500">첫 번째 프로젝트를 등록해보세요!</p>
+        <div id="empty-state" class="hidden max-w-lg mx-auto">
+            <div class="glass-card rounded-2xl p-16 text-center">
+                <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold text-zinc-200 mb-3">등록된 프로젝트가 없습니다</h3>
+                <p class="text-zinc-500">첫 번째 프로젝트를 등록하여 큐레이션을 시작해보세요!</p>
             </div>
         </div>
 
-        <div id="skeleton-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="skeleton-grid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         </div>
 
-        <div id="projects-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="projects-grid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
         </div>
 
-        <footer class="mt-16 text-center text-slate-500 text-sm">
-            <p>Powered by GitHub Issues API</p>
+        <footer class="mt-32 text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-xs text-zinc-500">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.6.113.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+                </svg>
+                Powered by GitHub Issues API
+            </div>
         </footer>
     </div>
 
     <script src="assets/js/app.js"></script>
 </body>
+
 </html>

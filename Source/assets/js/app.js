@@ -57,16 +57,16 @@ function extractTags(issue) {
 }
 
 function createTagStyle(color) {
+    // In dark mode, we want subtle glowing tags or glass-like tags
+    // Let's use the color but make it transparent for background and bright for text
     const r = parseInt(color.substr(0, 2), 16);
     const g = parseInt(color.substr(2, 2), 16);
     const b = parseInt(color.substr(4, 2), 16);
 
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-    const textColor = brightness > 128 ? '#1f2937' : '#ffffff';
-
     return {
-        backgroundColor: `#${color}`,
-        color: textColor
+        backgroundColor: `rgba(${r}, ${g}, ${b}, 0.15)`,
+        color: `rgb(${Math.min(r + 50, 255)}, ${Math.min(g + 50, 255)}, ${Math.min(b + 50, 255)})`,
+        borderColor: `rgba(${r}, ${g}, ${b}, 0.3)`
     };
 }
 
@@ -74,19 +74,19 @@ function renderSkeletonCards(count = 6) {
     DOM.skeletonGrid.innerHTML = '';
     for (let i = 0; i < count; i++) {
         const skeleton = document.createElement('div');
-        skeleton.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden';
+        skeleton.className = 'glass-card rounded-2xl overflow-hidden';
         skeleton.innerHTML = `
-            <div class="p-6">
-                <div class="skeleton h-6 w-3/4 rounded mb-4"></div>
-                <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
-                <div class="space-y-2 mb-4">
-                    <div class="skeleton h-3 w-full rounded"></div>
-                    <div class="skeleton h-3 w-5/6 rounded"></div>
-                    <div class="skeleton h-3 w-4/6 rounded"></div>
+            <div class="p-8">
+                <div class="skeleton-dark h-7 w-3/4 rounded-lg mb-6"></div>
+                <div class="skeleton-dark h-4 w-1/4 rounded-md mb-6"></div>
+                <div class="space-y-3 mb-8">
+                    <div class="skeleton-dark h-4 w-full rounded-md"></div>
+                    <div class="skeleton-dark h-4 w-5/6 rounded-md"></div>
+                    <div class="skeleton-dark h-4 w-4/6 rounded-md"></div>
                 </div>
-                <div class="flex gap-2">
-                    <div class="skeleton h-6 w-16 rounded-full"></div>
-                    <div class="skeleton h-6 w-20 rounded-full"></div>
+                <div class="flex gap-3">
+                    <div class="skeleton-dark h-7 w-20 rounded-full"></div>
+                    <div class="skeleton-dark h-7 w-24 rounded-full"></div>
                 </div>
             </div>
         `;
@@ -100,37 +100,49 @@ function renderProjectCard(issue) {
     const createdAt = formatDate(issue.created_at);
 
     const card = document.createElement('article');
-    card.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden card-hover flex flex-col h-full';
+    card.className = 'glass-card rounded-2xl overflow-hidden flex flex-col h-full group';
 
     let tagsHtml = '';
     if (tags.length > 0) {
-        tagsHtml = '<div class="flex flex-wrap gap-2 mb-4">';
+        tagsHtml = '<div class="flex flex-wrap gap-2 mb-6 mt-auto">';
         tags.forEach(tag => {
             const style = createTagStyle(tag.color);
-            tagsHtml += `<span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background-color: ${style.backgroundColor}; color: ${style.color}">${tag.name}</span>`;
+            tagsHtml += `<span class="text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors hover:bg-opacity-30" style="background-color: ${style.backgroundColor}; color: ${style.color}; border-color: ${style.borderColor}">${tag.name}</span>`;
         });
         tagsHtml += '</div>';
     }
 
     card.innerHTML = `
-        <div class="p-6 flex-1 flex flex-col">
-            <h3 class="text-xl font-semibold text-slate-800 mb-2 line-clamp-2">${issue.title}</h3>
-            <p class="text-sm text-slate-500 mb-4">${createdAt}</p>
-            <p class="text-slate-600 mb-6 flex-1 line-clamp-3">${description}</p>
+        <div class="p-8 flex-1 flex flex-col relative z-10">
+            <h3 class="text-2xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors">${issue.title}</h3>
+            <div class="flex items-center text-sm text-zinc-500 mb-6 font-medium">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                ${createdAt}
+            </div>
+            <p class="text-zinc-400 mb-8 leading-relaxed flex-1 line-clamp-3">${description}</p>
             ${tagsHtml}
-            ${url ? `
-                <a href="${url}" target="_blank" rel="noopener noreferrer"
-                   class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors w-full sm:w-auto">
-                    <span>프로젝트 보기</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                    </svg>
-                </a>
-            ` : `
-                <span class="text-slate-400 text-sm">링크가 없습니다</span>
-            `}
+            <div class="mt-4 pt-6 border-t border-white/5">
+                ${url ? `
+                    <a href="${url}" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center justify-center gap-2 w-full bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 font-medium py-3 px-6 rounded-xl transition-all border border-indigo-500/20 hover:border-indigo-500/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.2)]">
+                        <span>프로젝트 열기</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </a>
+                ` : `
+                    <div class="inline-flex items-center justify-center w-full bg-white/5 text-zinc-500 font-medium py-3 px-6 rounded-xl border border-white/5 cursor-not-allowed">
+                        <span>링크가 없습니다</span>
+                    </div>
+                `}
+            </div>
         </div>
+        <!-- Hover Gradient Effect -->
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0 pointer-events-none"></div>
     `;
+
+    // Ensure relative positioning for the absolute hover background
+    card.style.position = 'relative';
 
     return card;
 }
